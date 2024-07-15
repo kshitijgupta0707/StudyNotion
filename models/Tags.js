@@ -6,11 +6,14 @@ const schema = mongoose.Schema({
   },
   description: {
     type: String,
+    required: true,
   },
-  course: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Course",
-  },
+  courses: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+    },
+  ],
 });
 
 module.exports = mongoose.model("Tag", schema);
