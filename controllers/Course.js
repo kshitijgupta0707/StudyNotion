@@ -37,6 +37,7 @@ exports.createCourse = async (req, res) => {
       });
     }
     //Instructor validation
+    //i think userid and instrucotrdetails id are same i am just confused I will see it while testing the code
     const instructorDetails = await User.findOne({ _id: userId }); //it will always be found as we have authenticated already
     console.log("Instructor Details ", instructorDetails);
     if (!instructorDetails) {
@@ -106,6 +107,42 @@ exports.createCourse = async (req, res) => {
 
     //return response
   } catch (e) {
+    console.log("Error in creating the course");
+    console.error(e);
+    res.status(500).json({
+      success: false,
+      message: "Error in creating the tag",
+      error: e.message,
+    });
+  }
+};
+
+
+exports.showAllCourses = async(req , res) =>{
+  try{
+
+    const allCourses = await Course.find({} , {
+      courseName: true , 
+      price: true , 
+      instructor: true , 
+      thumbnail: true , 
+      ratingAndReviews: true , 
+      studentsEnrolled: true
+
+    }).populate('instructor').exec();
+
+    console.log("Courses" , allCourses);
+
+  
+
+    res.status(200).json({
+      success: true , 
+      message: "Retrieved all the courses successflly",
+      data: allCourses
+    })
+    
+  }catch(e){
+
     console.log("Error in creating the tags");
     console.error(e);
     res.status(500).json({
@@ -114,4 +151,4 @@ exports.createCourse = async (req, res) => {
       error: e.message,
     });
   }
-};
+}
