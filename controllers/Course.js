@@ -19,7 +19,7 @@ exports.createCourse = async (req, res) => {
       whatYouWillLearn,
       price,
       tag,
-      category
+      category,
     } = req.body;
     //fetch file
     const thumbnail = req.files.thumbnailImage;
@@ -121,6 +121,50 @@ exports.createCourse = async (req, res) => {
   }
 };
 
+exports.getCourseDetail = async (req, res) => {
+  try {
+    const { courseId } = req.body;
+    const courseDetails = await Course.findById(courseId)
+      .populate({
+        path: "instructor",
+        populate: {
+          path: "additionalDetails",
+        },
+      })
+      .populate({
+        path: "courseContent",
+        populate: {
+          path: 'subSection'
+        }
+      })
+      .populate("ratingAndReviews")
+      .populate("category")
+      .populate("studentsEnrolled")
+      .exec();
+
+    console.log("Courses", courseDetails);
+    if (!courseDetails) {
+      res.status(400).json({
+        success: false,
+        message: "Course not found",
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: "Course fetch successfully",
+        course: courseDetails,
+      });
+    }
+  } catch (e) {
+    console.log("Error in fetching the course");
+    console.error(e);
+    res.status(500).json({
+      success: false,
+      message: "Error in fetching the course",
+      error: e.message,
+    });
+  }
+};
 exports.showAllCourses = async (req, res) => {
   try {
     const allCourses = await Course.find(
