@@ -1,8 +1,9 @@
 const Course = require("../models/Course");
-const Tag = require("../models/Tags");
+const Category = require("../models/Category");
 const User = require("../models/User");
 const cloudinary = require("cloudinary");
 const { uploadImageToCloudinary } = require("../utils/imageUploader");
+require("dotenv").config();
 
 //Create course handler
 
@@ -18,6 +19,7 @@ exports.createCourse = async (req, res) => {
       whatYouWillLearn,
       price,
       tag,
+      category
     } = req.body;
     //fetch file
     const thumbnail = req.files.thumbnailImage;
@@ -29,7 +31,8 @@ exports.createCourse = async (req, res) => {
       !whatYouWillLearn ||
       !price ||
       !tag ||
-      !thumbnail
+      !thumbnail ||
+      !category
     ) {
       res.status(400).json({
         success: false,
@@ -49,8 +52,8 @@ exports.createCourse = async (req, res) => {
     }
 
     //Tag - valid
-    const tagDetails = await Tag.findONe({ _id: tag });
-    if (!tagDetails) {
+    const categoryDetails = await Category.findONe({ _id: category });
+    if (!categoryDetails) {
       res.status(400).json({
         success: false,
         message: "Tag is not valid",
@@ -71,7 +74,8 @@ exports.createCourse = async (req, res) => {
       instructor: instructorDetails._id,
       whatYouWillLearn,
       price,
-      tag: tagDetails._id,
+      tag,
+      category: categoryDetails._id,
       thumbnail: thumbnailImage.secure_url,
     });
     //add course entry in the user
@@ -87,9 +91,9 @@ exports.createCourse = async (req, res) => {
     );
     console.log(updatedUser);
     //add course entry in the tag
-    const updatedTag = await Tag.updateOne(
+    const updatedCategory = await Category.updateOne(
       {
-        _id: tag,
+        _id: category,
       },
       {
         $push: {
@@ -97,7 +101,7 @@ exports.createCourse = async (req, res) => {
         },
       }
     );
-    console.log(updatedTag);
+    console.log(updatedCategory);
     //return the response
     res.status(200).json({
       success: true,
@@ -111,38 +115,36 @@ exports.createCourse = async (req, res) => {
     console.error(e);
     res.status(500).json({
       success: false,
-      message: "Error in creating the tag",
+      message: "Error in creating the course",
       error: e.message,
     });
   }
 };
 
+exports.showAllCourses = async (req, res) => {
+  try {
+    const allCourses = await Course.find(
+      {},
+      {
+        courseName: true,
+        price: true,
+        instructor: true,
+        thumbnail: true,
+        ratingAndReviews: true,
+        studentsEnrolled: true,
+      }
+    )
+      .populate("instructor")
+      .exec();
 
-exports.showAllCourses = async(req , res) =>{
-  try{
-
-    const allCourses = await Course.find({} , {
-      courseName: true , 
-      price: true , 
-      instructor: true , 
-      thumbnail: true , 
-      ratingAndReviews: true , 
-      studentsEnrolled: true
-
-    }).populate('instructor').exec();
-
-    console.log("Courses" , allCourses);
-
-  
+    console.log("Courses", allCourses);
 
     res.status(200).json({
-      success: true , 
+      success: true,
       message: "Retrieved all the courses successflly",
-      data: allCourses
-    })
-    
-  }catch(e){
-
+      data: allCourses,
+    });
+  } catch (e) {
     console.log("Error in creating the tags");
     console.error(e);
     res.status(500).json({
@@ -151,4 +153,4 @@ exports.showAllCourses = async(req , res) =>{
       error: e.message,
     });
   }
-}
+};

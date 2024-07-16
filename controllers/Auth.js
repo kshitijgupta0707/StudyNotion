@@ -11,6 +11,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { mailSender } = require("../utils/mailSender");
 require("dotenv").config();
+const Profile = require("../models/Profile");
 
 //sign in
 
@@ -355,6 +356,44 @@ exports.changePassword = async (req, res) => {
     res.status(401).json({
       success: false,
       message: "Enter the old Password correctly",
+    });
+  }
+};
+//delete Account
+exports.deleteAccount = async (req, res) => {
+  try {
+    //get id
+    const id = req.user.id;
+    //check valid id
+
+    const userDetails = await User.findById(id);
+    if (!userDetails) {
+      res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    //unenroll user from all enrolled courses
+
+    //delete user profile
+    await Profile.findByIdAndDelete(userDetails.additionalDetails);
+
+    //delete user
+
+    await User.findByIdAndDelete(id);
+
+    //return response
+    res.status(200).json({
+      success: true,
+      message: "User Deleted Successfully",
+    });
+  } catch (e) {
+    console.log("Error in Deleting account");
+    console.error(e.message);
+    res.status(500).json({
+      success: false,
+      error: e.message,
+      message: "Error in deleting account",
     });
   }
 };

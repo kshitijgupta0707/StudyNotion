@@ -1,6 +1,6 @@
-const Tag = require("../models/Tags");
+const Category = require("../models/Category");
 
-exports.createTag = async (req, res) => {
+exports.createCategory = async (req, res) => {
   try {
     //fetch name and description
     const { name, description } = req.body;
@@ -13,29 +13,29 @@ exports.createTag = async (req, res) => {
       });
     }
     //push krdo in database
-    const tag = await Tag.create({
+    const category = await Category.create({
       name,
       description,
     });
-    console.log(tag);
+    console.log(category);
     res.status(200).json({
       success: true,
-      message: `${name} tag created successfully`,
+      message: `${name} category created successfully`,
     });
   } catch (e) {
-    console.log("Error in creating tag");
+    console.log("Error in creating category");
     console.error(e);
     res.status(500).json({
       success: false,
-      message: "Error in creating tag",
+      message: "Error in creating category",
     });
   }
 };
 
-exports.showAllTags = async (req, res) => {
+exports.showAllCategory = async (req, res) => {
   try {
     //take from db
-    const allTags = await Tag.find(
+    const allCategory = await Category.find(
       {},
       {
         name: true,
@@ -44,15 +44,15 @@ exports.showAllTags = async (req, res) => {
     );
     res.status(200).json({
       success: false,
-      data: allTags,
-      message: "All tags returned successfully",
+      data: allCategory,
+      message: "All Categories are returned successfully",
     });
   } catch (error) {
-    console.log("Error in getting all the tags");
+    console.log("Error in getting all the category");
     console.error(e);
     res.status(500).json({
       success: false,
-      message: "Error in getting all the tags",
+      message: "Error in getting all the category",
     });
   }
 };
