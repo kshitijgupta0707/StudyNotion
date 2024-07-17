@@ -5,7 +5,7 @@ function isFileTypeSupported(type, supportedTypes) {
 
 //function which uploades the file to cloudinary
 //folder - that you have created on cloudinary
-exports.uploadImageToCloudinary = async(file, folder, quality) => {
+exports.uploadImageToCloudinary = async (file, folder, quality, height) => {
   const options = { folder };
   console.log("temp: ");
   console.log(file.tempFilePath);
@@ -15,10 +15,13 @@ exports.uploadImageToCloudinary = async(file, folder, quality) => {
   if (quality) {
     options.quality = quality;
   }
+  if (height) {
+    options.height = height;
+  }
   //syntax -- 1st paranmter mei file.tempFilePath and second contains
   //option objcect -- folder ,  various options such as quality , height , width
   return await cloudinary.uploader.upload(file.tempFilePath, options);
-}
+};
 // exports.uploadImageToCloudinary = async (req, res) => {
 //   try {
 //     //data fetch

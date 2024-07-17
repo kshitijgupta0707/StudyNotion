@@ -66,6 +66,7 @@ exports.sendOtp = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Otp sent successfully",
+      otp,
     });
   } catch (e) {
     console.log("Error in sending otp");
@@ -144,9 +145,10 @@ exports.signup = async (req, res) => {
         message: "Otp is expired",
       });
     }
-
+    console.log(otp);
+    console.log(recentOtp[0].otp);
     //compare otp
-    if (otp !== recentOtp.otp) {
+    if (otp != recentOtp[0].otp) {
       return res.status(400).json({
         success: false,
         message: "Invalid otp",
@@ -173,7 +175,8 @@ exports.signup = async (req, res) => {
     }
 
     //entry in db
-
+    let approved = "";
+    approved === "Instructor" ? (approved = false) : (approved = true);
     const profileDetails = await Profile.create({
       gender: null,
       dateOfBirth: null,
@@ -189,6 +192,7 @@ exports.signup = async (req, res) => {
       accountType,
       contactNumber,
       additionalDetails: profileDetails._id,
+      approved: approved,
       //   image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName}+${lastName}`,
       image: `https://ui-avatars.com/api/?background=random&name=${firstName}+${lastName}`,
     });
@@ -242,7 +246,7 @@ exports.login = async (req, res) => {
         accountType: user.accountType,
       };
 
-      const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      const token = jwt.sign(payLoad, process.env.JWT_SECRET, {
         expiresIn: "1h", // Token expiration time
       });
       // Create response object without password
@@ -256,7 +260,8 @@ exports.login = async (req, res) => {
       //   };
       user.token = token;
       user.password = undefined;
-
+      console.log("updated user");
+      console.log(user);
       //creating a cookie
       let options = {
         expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
@@ -265,7 +270,7 @@ exports.login = async (req, res) => {
       res.cookie("token", token, options).status(200).json({
         success: true,
         token,
-        responseUser,
+        user,
         message: "User logged in successfully",
       });
     } else {
@@ -288,23 +293,24 @@ exports.changePassword = async (req, res) => {
   const { email, oldPassword, newPassword, confirmNewPassword } = req.body;
 
   //validate
-  if (!oldPassword || !newPassword || !confirmNewPassword) {
-    res.status(400).json({
+  if (!email || !oldPassword || !newPassword || !confirmNewPassword) {
+    return res.status(400).json({
       success: false,
       message: "Enter all the details",
     });
   }
   //compare cofirm
   if (newPassword !== confirmNewPassword) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "New Password doesn't matches",
     });
   }
   //check old password is correct
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: email });
+  console.log(user);
   if (!user) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "User not exists",
     });

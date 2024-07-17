@@ -22,7 +22,8 @@ exports.createCourse = async (req, res) => {
       category,
     } = req.body;
     //fetch file
-    const thumbnail = req.files.thumbnailImage;
+    let thumbnail;
+    if (req.files.thumbnailImage) thumbnail = req.files.thumbnailImage;
     //validation
     if (
       !courseName ||
@@ -34,7 +35,7 @@ exports.createCourse = async (req, res) => {
       !thumbnail ||
       !category
     ) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "All fields are required",
       });
@@ -44,7 +45,7 @@ exports.createCourse = async (req, res) => {
     const instructorDetails = await User.findOne({ _id: userId }); //it will always be found as we have authenticated already
     console.log("Instructor Details ", instructorDetails);
     if (!instructorDetails) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Instructor not found",
         error: e.message,
@@ -54,7 +55,7 @@ exports.createCourse = async (req, res) => {
     //Tag - valid
     const categoryDetails = await Category.findONe({ _id: category });
     if (!categoryDetails) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "Tag is not valid",
         error: e.message,
@@ -103,7 +104,7 @@ exports.createCourse = async (req, res) => {
     );
     console.log(updatedCategory);
     //return the response
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Course created successfully",
       data: newCourse,
@@ -134,8 +135,8 @@ exports.getCourseDetail = async (req, res) => {
       .populate({
         path: "courseContent",
         populate: {
-          path: 'subSection'
-        }
+          path: "subSection",
+        },
       })
       .populate("ratingAndReviews")
       .populate("category")

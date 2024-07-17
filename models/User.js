@@ -25,6 +25,13 @@ const schema = new mongoose.Schema({
     enum: ["Admin", "Student", "Instructor"],
     required: true,
   },
+  active: {
+			type: Boolean,
+			default: true,
+		},
+		approved: {
+			type: Boolean,
+    },
   additionalDetails: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Profile",
@@ -53,6 +60,9 @@ const schema = new mongoose.Schema({
   resetPasswordExpires: {
     type: Date,
   },
+},{
+  // Add timestamps for when the document is created and last modified
+	 timestamps: true 
 });
 
 module.exports = mongoose.model("User", schema);

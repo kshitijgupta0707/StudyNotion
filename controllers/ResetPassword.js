@@ -18,7 +18,7 @@ exports.resetPasswordToken = async (req, res) => {
 
     //validation on email
     if (!email) {
-      res.status(400).json({
+     return  res.status(400).json({
         success: false,
         message: "Enter the email",
       });
@@ -26,7 +26,7 @@ exports.resetPasswordToken = async (req, res) => {
     //check user exist or not
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(400).json({
+     return res.status(400).json({
         success: false,
         message: "User is not registered with this email",
       });
@@ -60,7 +60,7 @@ exports.resetPasswordToken = async (req, res) => {
     );
     //return response
 
-    return res.stauts(200).json({
+    return res.status(200).json({
       success: true,
       message: "Reset password link send successsfully",
     });

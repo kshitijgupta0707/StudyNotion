@@ -13,7 +13,7 @@ const schema = mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now(),
-    //it will delete the complete document in 5 minutes
+    //it will delete the complete document in 5 minutes after its creation
     expires: 5 * 60,
   },
 });
