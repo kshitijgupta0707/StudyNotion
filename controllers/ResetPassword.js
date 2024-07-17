@@ -82,8 +82,8 @@ exports.resetPassword = async (req, res) => {
     const { password, confirmPassword, token } = req.body; //front end se daaldia
 
     //validation
-    if (passwords != confirmPassword) {
-      res.status(400).json({
+    if (password != confirmPassword) {
+    return   res.status(400).json({
         success: false,
         message: "Password not matching",
       });
@@ -95,14 +95,14 @@ exports.resetPassword = async (req, res) => {
     //if No details -- invalid token
 
     if (!user) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         message: "User not found",
       });
     }
     //if time expires -- invalid token
     if (Date.now() > user.resetPasswordExpires) {
-      res.status(400).json({
+     return res.status(400).json({
         success: false,
         message: "Your Token has expired , try again",
       });
@@ -135,7 +135,13 @@ exports.resetPassword = async (req, res) => {
         password: hashedPassword,
       }
     );
-
+    
+    console.log(user);
+   mailSender(
+     user.email,
+     "Password Updated",
+     `Hello  ${user.firstName} ${user.lastName} , your password is updated successfully`
+   );
     //return response
     res.status(200).json({
       success: true,
@@ -145,7 +151,7 @@ exports.resetPassword = async (req, res) => {
     console.log("Error in updating password");
     console.log(e);
     res.status(500).json({
-      success: true,
+      success: false,
       message: "Issue in updating password , pkease try again later",
     });
   }

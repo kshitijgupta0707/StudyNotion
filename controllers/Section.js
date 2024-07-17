@@ -1,5 +1,6 @@
 const Section = require("../models/Section");
 const Course = require("../models/Course");
+const  mongoose  = require("mongoose");
 //how will i get the id of the course to put inside it
 //how will i get the id of the section to update it
 //how woll i
@@ -9,9 +10,16 @@ exports.createSection = async (req, res) => {
     const { sectionName, courseId } = req.body;
     //validate
     if (!sectionName || !courseId) {
-      res.status(400).json({
+      return res.status(400).json({
         success: true,
         message: "Missing details",
+      });
+    }
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      console.log("i got in it");
+      return res.status(400).json({
+        success: false,
+        message: "Course not found",
       });
     }
     //create it
@@ -20,10 +28,8 @@ exports.createSection = async (req, res) => {
     });
 
     //update course with section object id
-    const updatedCourse = await Course.update(
-      {
-        _id: courseId,
-      },
+    const updatedCourse = await Course.findByIdAndUpdate(
+      courseId,
       {
         $push: {
           courseContent: section._id,
@@ -33,8 +39,12 @@ exports.createSection = async (req, res) => {
         new: true,
       }
     )
-      .populate("Section")
-      .populate("SubSection")
+      .populate({
+        path: "courseContent",
+        populate: {
+          path: "subSections",
+        },
+      })
       .exec();
 
     // return response
@@ -54,28 +64,40 @@ exports.createSection = async (req, res) => {
 };
 exports.updateSection = async (req, res) => {
   try {
-    //fetch
+    // Fetch
     const { sectionId, sectionName } = req.body;
-    //validate
+
+    // Validate
     if (!sectionName || !sectionId) {
-      res.status(400).json({
-        success: true,
+      return res.status(400).json({
+        success: false,
         message: "Fill all the details",
       });
     }
-    //create it
-    const section = await Section.update(
-      {
-        _id: sectionId,
-      },
-      {
-        sectionName,
-      },
-      {
-        new: true,
-      }
-    ).populate("SubSection");
-    // return response
+
+    // Check if the section ID is valid
+    if (!mongoose.Types.ObjectId.isValid(sectionId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid section ID",
+      });
+    }
+
+    // Update the section
+    const section = await Section.findByIdAndUpdate(
+      sectionId,
+      { sectionName },
+      { new: true } // Return the updated document
+    ).populate("subSections");
+
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    // Return response
     res.status(200).json({
       success: true,
       message: "Section updated successfully",
@@ -93,18 +115,29 @@ exports.updateSection = async (req, res) => {
 exports.deleteSection = async (req, res) => {
   try {
     //fetch
-    const { sectionId } = req.params; //sending id in params
-    const section = await Section.delete({
-      _id: sectionId,
-    });
+    const { sectionId, courseId } = req.body; //sending id in params
+
+    // Validate section ID
+    if (
+      !mongoose.Types.ObjectId.isValid(sectionId) ||
+      !mongoose.Types.ObjectId.isValid(courseId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Id's",
+      });
+    }
     //delete from the course
-
-
-
+    const updateCourse = await Course.findByIdAndUpdate(courseId , 
+      {
+        $pull:{
+          courseContent: sectionId
+        }
+      }
+    )
+    // Find and delete the section
+    const section = await Section.findByIdAndDelete(sectionId);
     //do we need to deleted the entry from the course schema? check while testing
-
-
-
 
     // return response
     res.status(200).json({
@@ -112,13 +145,6 @@ exports.deleteSection = async (req, res) => {
       message: "Section deleted successfully",
       section,
     });
-
-
-
-
-
-
-
   } catch (e) {
     console.log("Error in deleting Section");
     console.error(e.message);

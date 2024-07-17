@@ -58,7 +58,7 @@ exports.createSubSection = async (req, res) => {
       message: "Subsection created successfully",
       updatedsection,
     });
-  } catch (e) {
+   m } catch (e) {
     console.log("Error in creating the subsection");
     console.error(e);
     res.status(500).json({

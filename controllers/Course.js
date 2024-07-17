@@ -1,8 +1,8 @@
 const Course = require("../models/Course");
 const Category = require("../models/Category");
 const User = require("../models/User");
-const cloudinary = require("cloudinary");
 const { uploadImageToCloudinary } = require("../utils/imageUploader");
+const { default: mongoose } = require("mongoose");
 require("dotenv").config();
 
 //Create course handler
@@ -15,7 +15,6 @@ exports.createCourse = async (req, res) => {
     const {
       courseName,
       courseDescription,
-      // instructor,
       whatYouWillLearn,
       price,
       tag,
@@ -28,7 +27,6 @@ exports.createCourse = async (req, res) => {
     if (
       !courseName ||
       !courseDescription ||
-      !instructor ||
       !whatYouWillLearn ||
       !price ||
       !tag ||
@@ -53,16 +51,15 @@ exports.createCourse = async (req, res) => {
     }
 
     //Tag - valid
-    const categoryDetails = await Category.findONe({ _id: category });
-    if (!categoryDetails) {
+    if (!mongoose.Types.ObjectId.isValid(category)) {
       return res.status(400).json({
         success: false,
         message: "Category is not valid",
-        error: e.message,
       });
     }
+    const categoryDetails = await Category.findOne({ _id: category });
     //upload image on cloudinary
-    const thumbnailImage = uploadImageToCloudinary(
+    const thumbnailImage = await uploadImageToCloudinary(
       thumbnail,
       process.env.FOLDER_NAME
     );
@@ -125,6 +122,12 @@ exports.createCourse = async (req, res) => {
 exports.getCourseDetail = async (req, res) => {
   try {
     const { courseId } = req.body;
+    if(!mongoose.Types.ObjectId.isValid(courseId)){
+        return res.status(400).json({
+          success: false,
+          message: "Course not found",
+        });
+    }
     const courseDetails = await Course.findById(courseId)
       .populate({
         path: "instructor",
@@ -135,7 +138,7 @@ exports.getCourseDetail = async (req, res) => {
       .populate({
         path: "courseContent",
         populate: {
-          path: "subSection",
+          path: "subSections",
         },
       })
       .populate("ratingAndReviews")
@@ -144,22 +147,17 @@ exports.getCourseDetail = async (req, res) => {
       .exec();
 
     console.log("Courses", courseDetails);
-    if (!courseDetails) {
-      res.status(400).json({
-        success: false,
-        message: "Course not found",
-      });
-    } else {
-      res.status(200).json({
+ 
+      return res.status(200).json({
         success: true,
         message: "Course fetch successfully",
         course: courseDetails,
       });
-    }
+    
   } catch (e) {
     console.log("Error in fetching the course");
     console.error(e);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Error in fetching the course",
       error: e.message,

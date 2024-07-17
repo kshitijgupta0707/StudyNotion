@@ -3,6 +3,7 @@ const courseSchema = mongoose.Schema({
   courseId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Course",
+    required: true,
   },
   completedVideos: [
     {

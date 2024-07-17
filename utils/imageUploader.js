@@ -1,4 +1,5 @@
 //to check if file type is supported or note
+const cloudinary = require('cloudinary')
 function isFileTypeSupported(type, supportedTypes) {
   return supportedTypes.includes(type);
 }
