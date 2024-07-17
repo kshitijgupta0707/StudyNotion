@@ -12,9 +12,9 @@ exports.updateProfile = async (req, res) => {
 
     //Validate
     if (!gender || !contactNumber) {
-      res.status(400).json({
+     return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: "Enter the required details first",
       });
     }
 
@@ -33,7 +33,7 @@ exports.updateProfile = async (req, res) => {
 
     await profileDetails.save();
     //return the response
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Profile updated successfully",
       profileDetails,

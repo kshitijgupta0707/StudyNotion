@@ -57,7 +57,7 @@ exports.createCourse = async (req, res) => {
     if (!categoryDetails) {
       return res.status(400).json({
         success: false,
-        message: "Tag is not valid",
+        message: "Category is not valid",
         error: e.message,
       });
     }

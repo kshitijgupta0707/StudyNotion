@@ -1,6 +1,8 @@
 const Category = require("../models/Category");
 const Course = require("../models/Course");
-
+var mongoose = require("mongoose");
+var Schema = mongoose.Schema;
+var ObjectId = Schema.ObjectId;
 exports.createCategory = async (req, res) => {
   try {
     //fetch name and description
@@ -8,7 +10,7 @@ exports.createCategory = async (req, res) => {
 
     //validate
     if (!name || !description) {
-      res.status(403).json({
+      return res.status(403).json({
         success: false,
         message: "All fields are required",
       });
@@ -44,7 +46,7 @@ exports.showAllCategory = async (req, res) => {
       }
     );
     res.status(200).json({
-      success: false,
+      success: true,
       data: allCategory,
       message: "All Categories are returned successfully",
     });
@@ -65,16 +67,32 @@ exports.categoryPageDetails = async (req, res) => {
   try {
     //get category id
     const { categoryId } = req.body;
+    if (!categoryId) {
+      return res.status(404).json({
+        success: true,
+        message: "Please provide the course id",
+      });
+    }
+    // Check if categoryId is a valid MongoDB ObjectId //otherWise it will throw error
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid category id",
+      });
+    }
+
     //fetch all the courses of that category
     const selectedCategory = await Category.findById(categoryId)
       .populate("courses")
       .exec();
+
+    console.log("Selected category");
+    console.log(selectedCategory);
     //if no course found - return false
     if (!selectedCategory) {
-      res.status(404).json({
+      return res.status(404).json({
         success: true,
         message: "Sorry, There is no courses in this category",
-        averageRating,
       });
     }
     // get course for different categories
@@ -94,8 +112,10 @@ exports.categoryPageDetails = async (req, res) => {
     //it has array of courses i want to sort it on the basis of length of studentsEnroolled
 
     const sortedCourses = allCourses.sort((a, b) => {
-      return a.studentsEnrolled.length - b.studentsEnrolled.length;
-    });
+      return b.studentsEnrolled.length - a.studentsEnrolled.length;
+    }).slice(0,8) //get top 8courses
+    console.log("Sorted courses");
+    console.log(sortedCourses);
 
     //return responsse
     res.status(200).json({
@@ -103,14 +123,14 @@ exports.categoryPageDetails = async (req, res) => {
       data: {
         selectedCategory,
         differentCategories,
-        sortedCourses
+        sortedCourses,
       },
     });
   } catch (e) {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Error in categoryPageDetails",
+      message: "Error in category page Details",
     });
   }
 };
